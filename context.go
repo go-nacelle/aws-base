@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
-func getRequestID(ctx context.Context) string {
+func GetRequestID(ctx context.Context) string {
 	if lc, ok := lambdacontext.FromContext(ctx); ok {
 		return lc.AwsRequestID
 	}

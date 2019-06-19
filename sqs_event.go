@@ -40,7 +40,7 @@ func (h *sqsEventHandler) Invoke(ctx context.Context, payload []byte) ([]byte, e
 	// TODO - log
 
 	err := h.handler.Handle(ctx, event.Records, h.Logger.WithFields(map[string]interface{}{
-		"requestId": getRequestID(ctx),
+		"requestId": GetRequestID(ctx),
 	}))
 
 	if err != nil {

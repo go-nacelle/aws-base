@@ -1,6 +1,7 @@
 package lambdabase
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/rpc"
@@ -11,7 +12,7 @@ import (
 )
 
 type (
-	LambdaServer struct {
+	Server struct {
 		Logger   nacelle.Logger           `service:"logger"`
 		Services nacelle.ServiceContainer `service:"services"`
 		handler  Handler
@@ -20,20 +21,28 @@ type (
 		once     *sync.Once
 	}
 
+	// TODO - add health?
+
 	Handler interface {
 		nacelle.Initializer
 		lambda.Handler
 	}
+
+	LambdaHandlerFunc func(ctx context.Context, payload []byte) ([]byte, error)
 )
 
-func NewServer(handler Handler) *LambdaServer {
-	return &LambdaServer{
+func (f LambdaHandlerFunc) Invoke(ctx context.Context, payload []byte) ([]byte, error) {
+	return f(ctx, payload)
+}
+
+func NewServer(handler Handler) *Server {
+	return &Server{
 		handler: handler,
 		once:    &sync.Once{},
 	}
 }
 
-func (s *LambdaServer) Init(config nacelle.Config) error {
+func (s *Server) Init(config nacelle.Config) error {
 	serverConfig := &Config{}
 	if err := config.Load(serverConfig); err != nil {
 		return err
@@ -64,7 +73,7 @@ func (s *LambdaServer) Init(config nacelle.Config) error {
 	return nil
 }
 
-func (s *LambdaServer) Start() error {
+func (s *Server) Start() error {
 	defer s.close()
 	wg := sync.WaitGroup{}
 
@@ -93,12 +102,12 @@ func (s *LambdaServer) Start() error {
 	return nil
 }
 
-func (s *LambdaServer) Stop() error {
+func (s *Server) Stop() error {
 	s.close()
 	return nil
 }
 
-func (s *LambdaServer) close() {
+func (s *Server) close() {
 	s.once.Do(func() {
 		if s.listener == nil {
 			return
