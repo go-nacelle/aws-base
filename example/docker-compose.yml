@@ -1,0 +1,19 @@
+version: '3.7'
+services:
+  localstack:
+    image: localstack/localstack
+    environment:
+      - DEBUG=true
+      - LAMBDA_DOCKER_NETWORK=example_local
+      - LAMBDA_EXECUTOR=docker-reuse
+      - SERVICES=lambda,kinesis
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - local
+    ports:
+      - 4568:4568
+      - 4574:4574
+
+networks:
+  local: ~
