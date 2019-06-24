@@ -2,6 +2,7 @@ package lambdabase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/go-nacelle/nacelle"
@@ -12,8 +13,12 @@ type (
 		Handle(ctx context.Context, record events.DynamoDBEventRecord, logger nacelle.Logger) error
 	}
 
+	dynamoDBRecordHandlerInitializer interface {
+		nacelle.Initializer
+		DynamoDBRecordHandler
+	}
+
 	dynamoDBRecordHandler struct {
-		Logger   nacelle.Logger           `service:"logger"`
 		Services nacelle.ServiceContainer `service:"services"`
 		handler  DynamoDBRecordHandler
 	}
@@ -35,14 +40,13 @@ func (h *dynamoDBRecordHandler) Handle(ctx context.Context, records []events.Dyn
 			"eventId": record.EventID,
 		})
 
-		// TODO - log
+		logger.Debug("Handling record")
 
 		if err := h.handler.Handle(ctx, record, recordLogger); err != nil {
-			// TODO - log
-			return err
+			return fmt.Errorf("failed to process DynamoDB record %s (%s)", record.EventID, err.Error())
 		}
 	}
 
-	// TODO - log
+	logger.Debug("DynamoDB record handled successfully")
 	return nil
 }

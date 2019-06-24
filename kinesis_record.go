@@ -2,6 +2,7 @@ package lambdabase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/go-nacelle/nacelle"
@@ -10,6 +11,11 @@ import (
 type (
 	KinesisRecordHandler interface {
 		Handle(ctx context.Context, record events.KinesisEventRecord, logger nacelle.Logger) error
+	}
+
+	kinesisRecordHandlerInitializer interface {
+		nacelle.Initializer
+		KinesisRecordHandler
 	}
 
 	kinesisRecordHandler struct {
@@ -35,14 +41,13 @@ func (h *kinesisRecordHandler) Handle(ctx context.Context, records []events.Kine
 			"eventId": record.EventID,
 		})
 
-		// TODO - log
+		logger.Debug("Handling record")
 
 		if err := h.handler.Handle(ctx, record, recordLogger); err != nil {
-			// TODO - log
-			return err
+			return fmt.Errorf("failed to process Kinesis record %s (%s)", record.EventID, err.Error())
 		}
 	}
 
-	// TODO - log
+	logger.Debug("Kinesis record handled successfully")
 	return nil
 }

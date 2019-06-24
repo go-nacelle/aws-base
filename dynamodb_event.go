@@ -14,6 +14,11 @@ type (
 		Handle(ctx context.Context, batch []events.DynamoDBEventRecord, logger nacelle.Logger) error
 	}
 
+	dynamoDBEventHandlerInitializer interface {
+		nacelle.Initializer
+		DynamoDBEventHandler
+	}
+
 	dynamoDBEventHandler struct {
 		Logger   nacelle.Logger           `service:"logger"`
 		Services nacelle.ServiceContainer `service:"services"`
@@ -37,17 +42,16 @@ func (h *dynamoDBEventHandler) Invoke(ctx context.Context, payload []byte) ([]by
 		return nil, fmt.Errorf("failed to unmarshal event (%s)", err.Error())
 	}
 
-	// TODO - log
-
-	err := h.handler.Handle(ctx, event.Records, h.Logger.WithFields(map[string]interface{}{
+	logger := h.Logger.WithFields(map[string]interface{}{
 		"requestId": GetRequestID(ctx),
-	}))
+	})
 
-	if err != nil {
-		// TODO -
-		return nil, err
+	logger.Debug("Received %d DynamoDB records", len(event.Records))
+
+	if err := h.handler.Handle(ctx, event.Records, logger); err != nil {
+		return nil, fmt.Errorf("failed to process DynamoDB event (%s)", err.Error())
 	}
 
-	// TODO - log
+	logger.Debug("DynamoDB event handled successfully")
 	return nil, nil
 }

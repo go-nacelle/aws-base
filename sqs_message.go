@@ -2,6 +2,7 @@ package lambdabase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/go-nacelle/nacelle"
@@ -10,6 +11,11 @@ import (
 type (
 	SQSMessageHandler interface {
 		Handle(ctx context.Context, message events.SQSMessage, logger nacelle.Logger) error
+	}
+
+	sqsMessageHandlerInitializer interface {
+		nacelle.Initializer
+		SQSMessageHandler
 	}
 
 	sqsMessageHandler struct {
@@ -35,14 +41,13 @@ func (h *sqsMessageHandler) Handle(ctx context.Context, batch []events.SQSMessag
 			"messageId": message.MessageId,
 		})
 
-		// TODO - log
+		logger.Debug("Handling message")
 
 		if err := h.handler.Handle(ctx, message, messageLogger); err != nil {
-			// TODO - log
-			return err
+			return fmt.Errorf("failed to process SQS message %s (%s)", message.MessageId, err.Error())
 		}
 	}
 
-	// TODO - log
+	logger.Debug("SQS message handled successfully")
 	return nil
 }

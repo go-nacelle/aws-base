@@ -14,6 +14,11 @@ type (
 		Handle(ctx context.Context, batch []events.KinesisEventRecord, logger nacelle.Logger) error
 	}
 
+	kinesisEventHandlerInitializer interface {
+		nacelle.Initializer
+		KinesisEventHandler
+	}
+
 	kinesisEventHandler struct {
 		Logger   nacelle.Logger           `service:"logger"`
 		Services nacelle.ServiceContainer `service:"services"`
@@ -37,17 +42,16 @@ func (h *kinesisEventHandler) Invoke(ctx context.Context, payload []byte) ([]byt
 		return nil, fmt.Errorf("failed to unmarshal event (%s)", err.Error())
 	}
 
-	// TODO - log
-
-	err := h.handler.Handle(ctx, event.Records, h.Logger.WithFields(map[string]interface{}{
+	logger := h.Logger.WithFields(map[string]interface{}{
 		"requestId": GetRequestID(ctx),
-	}))
+	})
 
-	if err != nil {
-		// TODO -
-		return nil, err
+	logger.Debug("Received %d Kinesis records", len(event.Records))
+
+	if err := h.handler.Handle(ctx, event.Records, logger); err != nil {
+		return nil, fmt.Errorf("failed to process Kinesis event (%s)", err.Error())
 	}
 
-	// TODO - log
+	logger.Debug("Kinesis event handled successfully")
 	return nil, nil
 }
