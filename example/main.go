@@ -16,7 +16,7 @@ func (h *RecordHandler) Handle(ctx context.Context, record events.KinesisEventRe
 }
 
 func setup(processes nacelle.ProcessContainer, services nacelle.ServiceContainer) error {
-	processes.RegisterProcess(lambdabase.NewKinesisRecordServer(&RecordHandler{}))
+	processes.RegisterProcess(lambdabase.NewKinesisRecordServer(&RecordHandler{}), nacelle.WithProcessName("kinesis-handler"))
 	return nil
 }
 
