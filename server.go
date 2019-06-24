@@ -9,19 +9,20 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/go-nacelle/nacelle"
+	"github.com/google/uuid"
 )
 
 type (
 	Server struct {
-		Logger   nacelle.Logger           `service:"logger"`
-		Services nacelle.ServiceContainer `service:"services"`
-		handler  Handler
-		listener net.Listener
-		server   *rpc.Server
-		once     *sync.Once
+		Logger      nacelle.Logger           `service:"logger"`
+		Services    nacelle.ServiceContainer `service:"services"`
+		Health      nacelle.Health           `service:"health"`
+		handler     Handler
+		listener    net.Listener
+		server      *rpc.Server
+		once        *sync.Once
+		healthToken healthToken
 	}
-
-	// TODO - add health?
 
 	Handler interface {
 		nacelle.Initializer
@@ -37,12 +38,17 @@ func (f LambdaHandlerFunc) Invoke(ctx context.Context, payload []byte) ([]byte, 
 
 func NewServer(handler Handler) *Server {
 	return &Server{
-		handler: handler,
-		once:    &sync.Once{},
+		handler:     handler,
+		once:        &sync.Once{},
+		healthToken: healthToken(uuid.New().String()),
 	}
 }
 
 func (s *Server) Init(config nacelle.Config) error {
+	if err := s.Health.AddReason(s.healthToken); err != nil {
+		return err
+	}
+
 	serverConfig := &Config{}
 	if err := config.Load(serverConfig); err != nil {
 		return err
@@ -56,16 +62,15 @@ func (s *Server) Init(config nacelle.Config) error {
 		return err
 	}
 
-	server := rpc.NewServer()
-	handler := lambda.NewFunction(s.handler)
-
-	if err := server.Register(handler); err != nil {
-		return fmt.Errorf("failed to register RPC (%s)", err.Error())
+	listener, err := makeListener("", serverConfig.LambdaServerPort)
+	if err != nil {
+		return err
 	}
 
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", serverConfig.LambdaServerPort))
-	if err != nil {
-		return fmt.Errorf("failed to create listener (%s)", err.Error())
+	server := rpc.NewServer()
+
+	if err := server.Register(lambda.NewFunction(s.handler)); err != nil {
+		return fmt.Errorf("failed to register RPC (%s)", err.Error())
 	}
 
 	s.server = server
@@ -76,6 +81,10 @@ func (s *Server) Init(config nacelle.Config) error {
 func (s *Server) Start() error {
 	defer s.close()
 	wg := sync.WaitGroup{}
+
+	if err := s.Health.RemoveReason(s.healthToken); err != nil {
+		return err
+	}
 
 	for {
 		conn, err := s.listener.Accept()
@@ -116,4 +125,13 @@ func (s *Server) close() {
 		s.Logger.Info("Closing lambda listener")
 		s.listener.Close()
 	})
+}
+
+func makeListener(host string, port int) (*net.TCPListener, error) {
+	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", host, port))
+	if err != nil {
+		return nil, err
+	}
+
+	return net.ListenTCP("tcp", addr)
 }
