@@ -1,13 +1,14 @@
 package lambdabase
 
+//go:generate go-mockgen -f github.com/go-nacelle/lambdabase -i dynamoDBEventHandlerInitializer -i dynamoDBRecordHandlerInitializer -o dynamodb_mock_test.go
+//go:generate go-mockgen -f github.com/go-nacelle/lambdabase -i kinesisEventHandlerInitializer -i kinesisRecordHandlerInitializer -o kinesis_mock_test.go
+//go:generate go-mockgen -f github.com/go-nacelle/lambdabase -i sqsEventHandlerInitializer -i sqsMessageHandlerInitializer -o sqs_mock_test.go
+
 import (
-	"net"
 	"testing"
 
 	"github.com/aphistic/sweet"
 	junit "github.com/aphistic/sweet-junit"
-	"github.com/go-nacelle/nacelle"
-	"github.com/go-nacelle/nacelle/mocks"
 	. "github.com/onsi/gomega"
 )
 
@@ -17,45 +18,9 @@ func TestMain(m *testing.M) {
 	sweet.Run(m, func(s *sweet.S) {
 		s.RegisterPlugin(junit.NewPlugin())
 
+		s.AddSuite(&DynamoDBSuite{})
+		s.AddSuite(&KinesisSuite{})
 		s.AddSuite(&ServerSuite{})
+		s.AddSuite(&SQSSuite{})
 	})
-}
-
-//
-// Config
-
-type emptyConfig struct{}
-
-func makeConfig(base *Config) nacelle.Config {
-	cfg := mocks.NewMockConfig()
-	cfg.LoadFunc.SetDefaultHook(func(target interface{}, modifiers ...nacelle.TagModifier) error {
-		// c := target.(*Config)
-		// c.HTTPPort = base.HTTPPort
-		// c.HTTPCertFile = base.HTTPCertFile
-		// c.HTTPKeyFile = base.HTTPKeyFile
-		// c.RawShutdownTimeout = base.RawShutdownTimeout
-		// return c.PostLoad()
-		return nil
-	})
-
-	return cfg
-}
-
-//
-//  Injection
-
-type A struct{ X int }
-type B struct{ X float64 }
-
-func makeBadContainer() nacelle.ServiceContainer {
-	container := nacelle.NewServiceContainer()
-	container.Set("A", &B{})
-	return container
-}
-
-//
-// Server Helpers
-
-func getDynamicPort(listener net.Listener) int {
-	return listener.Addr().(*net.TCPAddr).Port
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/rpc"
-	"os"
 
 	"github.com/aphistic/sweet"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,6 +15,10 @@ import (
 )
 
 type ServerSuite struct{}
+
+var testConfig = nacelle.NewConfig(nacelle.NewTestEnvSourcer(map[string]string{
+	"_lambda_server_port": "0",
+}))
 
 var testHandler = LambdaHandlerFunc(func(ctx context.Context, payload []byte) ([]byte, error) {
 	data := []string{}
@@ -36,11 +39,8 @@ var testHandler = LambdaHandlerFunc(func(ctx context.Context, payload []byte) ([
 })
 
 func (s *ServerSuite) TestServeAndStop(t sweet.T) {
-	os.Setenv("_LAMBDA_SERVER_PORT", "0")
-	defer os.Clearenv()
-
 	server := makeLambdaServer(testHandler)
-	err := server.Init(makeConfig(&Config{}))
+	err := server.Init(testConfig)
 	Expect(err).To(BeNil())
 
 	go server.Start()
@@ -77,11 +77,9 @@ func (s *ServerSuite) TestBadInjection(t sweet.T) {
 	server := NewServer(&badInjectionLambdaHandler{})
 	server.Logger = nacelle.NewNilLogger()
 	server.Services = makeBadContainer()
+	server.Health = nacelle.NewHealth()
 
-	os.Setenv("HTTP_PORT", "0")
-	defer os.Clearenv()
-
-	err := server.Init(makeConfig(&Config{}))
+	err := server.Init(testConfig)
 	Expect(err.Error()).To(ContainSubstring("ServiceA"))
 }
 
@@ -89,11 +87,9 @@ func (s *ServerSuite) TestInitError(t sweet.T) {
 	server := NewServer(&badInitLambdaHandler{})
 	server.Logger = nacelle.NewNilLogger()
 	server.Services = makeBadContainer()
+	server.Health = nacelle.NewHealth()
 
-	os.Setenv("HTTP_PORT", "0")
-	defer os.Clearenv()
-
-	err := server.Init(makeConfig(&Config{}))
+	err := server.Init(testConfig)
 	Expect(err).To(MatchError("oops"))
 }
 
@@ -112,12 +108,19 @@ func makeLambdaServer(handler lambda.Handler) *Server {
 	server := NewServer(&wrappedHandler{Handler: handler})
 	server.Logger = nacelle.NewNilLogger()
 	server.Services = nacelle.NewServiceContainer()
-	// server.Health = nacelle.NewHealth()
+	server.Health = nacelle.NewHealth()
 	return server
+}
+
+func getDynamicPort(listener net.Listener) int {
+	return listener.Addr().(*net.TCPAddr).Port
 }
 
 //
 // Bad Injection
+
+type A struct{ X int }
+type B struct{ X float64 }
 
 type badInjectionLambdaHandler struct {
 	ServiceA *A `service:"A"`
@@ -127,20 +130,25 @@ func (i *badInjectionLambdaHandler) Init(nacelle.Config) error {
 	return nil
 }
 
-func (i *badInjectionLambdaHandler) Invoke( context.Context,  []byte) ([]byte, error) {
+func (i *badInjectionLambdaHandler) Invoke(context.Context, []byte) ([]byte, error) {
 	return nil, nil
+}
+
+func makeBadContainer() nacelle.ServiceContainer {
+	container := nacelle.NewServiceContainer()
+	container.Set("A", &B{})
+	return container
 }
 
 //
 // Bad Init
 
-type badInitLambdaHandler struct {}
+type badInitLambdaHandler struct{}
 
 func (i *badInitLambdaHandler) Init(nacelle.Config) error {
 	return fmt.Errorf("oops")
 }
 
-func (i *badInitLambdaHandler) Invoke( context.Context,  []byte) ([]byte, error) {
+func (i *badInitLambdaHandler) Invoke(context.Context, []byte) ([]byte, error) {
 	return nil, nil
 }
-
