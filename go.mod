@@ -10,4 +10,6 @@ require (
 	github.com/go-nacelle/nacelle v1.0.1
 	github.com/google/uuid v1.1.1
 	github.com/onsi/gomega v1.5.0
+	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4 // indirect
+	golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0 // indirect
 )
