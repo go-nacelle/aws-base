@@ -1,6 +1,6 @@
 # Lambda Base Example
 
-A trivial example application to showcase the [lambdabase](https://github.com/go-nacelle/lambdabase) library.
+A trivial example application to showcase the [lambdabase](https://nacelle.dev/docs/base-processes/lambdabase) library.
 
 ## Overview
 
