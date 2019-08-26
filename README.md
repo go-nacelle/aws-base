@@ -21,23 +21,23 @@ server := lambdabase.NewServer(NewHandler(), options...)
 This library also supplies several additional abstract server processes that respond to specific Lambda [event sources](https://docs.aws.amazon.com/lambda/latest/dg/intro-invocation-modes.html). These servers require a more specific handler interface invoked with unmarshalled request data and additional log context.
 
 <dl>
-  <dd>NewDynamoDBEventServer</dd>
-  <dt><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewDynamoDBEventServer">NewDynamoDBEventServer</a> invokes the backing handler with a list of DynamoDBEventRecords.</dt>
+  <dt>NewDynamoDBEventServer</dt>
+  <dd><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewDynamoDBEventServer">NewDynamoDBEventServer</a> invokes the backing handler with a list of DynamoDBEventRecords.</dd>
 
-  <dd>NewDynamoDBRecordServer</dd>
-  <dt><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewDynamoDBRecordServer">NewDynamoDBRecordServer</a> invokes the backing handler once for each DynamoDBEventRecord in the batch.</dt>
+  <dt>NewDynamoDBRecordServer</dt>
+  <dd><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewDynamoDBRecordServer">NewDynamoDBRecordServer</a> invokes the backing handler once for each DynamoDBEventRecord in the batch.</dd>
 
-  <dd>NewKinesisEventServer</dd>
-  <dt><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewKinesisEventServer">NewKinesisEventServer</a> invokes the backing handler with a list of KinesisEventRecords.</dt>
+  <dt>NewKinesisEventServer</dt>
+  <dd><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewKinesisEventServer">NewKinesisEventServer</a> invokes the backing handler with a list of KinesisEventRecords.</dd>
 
-  <dd>NewKinesisRecordServer</dd>
-  <dt><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewKinesisRecordServer">NewKinesisRecordServer</a> invokes the backing handler once for each KinesisEventRecord in the batch.</dt>
+  <dt>NewKinesisRecordServer</dt>
+  <dd><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewKinesisRecordServer">NewKinesisRecordServer</a> invokes the backing handler once for each KinesisEventRecord in the batch.</dd>
 
-  <dd>NewSQSEventServer</dd>
-  <dt><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewSQSEventServer">NewSQSEventServer</a> invokes the backing handler with a list of SQSMessages.</dt>
+  <dt>NewSQSEventServer</dt>
+  <dd><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewSQSEventServer">NewSQSEventServer</a> invokes the backing handler with a list of SQSMessages.</dd>
 
-  <dd>NewSQSRecordServer</dd>
-  <dt><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewSQSRecordServer">NewSQSRecordServer</a> invokes the backing handler once for each SQSMessage in the batch.</dt>
+  <dt>NewSQSRecordServer</dt>
+  <dd><a href="https://godoc.org/github.com/go-nacelle/lambdabase#NewSQSRecordServer">NewSQSRecordServer</a> invokes the backing handler once for each SQSMessage in the batch.</dd>
 </dl>
 
 ### Handler
