@@ -3,15 +3,13 @@ package lambdabase
 import (
 	"context"
 	"fmt"
+	"testing"
 
-	"github.com/aphistic/sweet"
 	"github.com/aws/aws-lambda-go/events"
-	. "github.com/efritz/go-mockgen/matchers"
+	mockassert "github.com/derision-test/go-mockgen/testutil/assert"
 	"github.com/go-nacelle/nacelle"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 )
-
-type SQSSuite struct{}
 
 var testSQSPayload = `{
 	"Records": [
@@ -22,12 +20,12 @@ var testSQSPayload = `{
 }`
 
 var testSQSMessages = []events.SQSMessage{
-	events.SQSMessage{MessageId: "m1", Body: "foo"},
-	events.SQSMessage{MessageId: "m2", Body: "bar"},
-	events.SQSMessage{MessageId: "m3", Body: "baz"},
+	{MessageId: "m1", Body: "foo"},
+	{MessageId: "m2", Body: "bar"},
+	{MessageId: "m3", Body: "baz"},
 }
 
-func (s *SQSSuite) TestEventInit(t sweet.T) {
+func TestSQSEventInit(t *testing.T) {
 	handler := NewMockSqsEventHandlerInitializer()
 	outer := &sqsEventHandler{
 		handler:  handler,
@@ -37,11 +35,11 @@ func (s *SQSSuite) TestEventInit(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err).To(BeNil())
-	Expect(handler.InitFunc).To(BeCalledOnceWith(config))
+	require.Nil(t, err)
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
 }
 
-func (s *SQSSuite) TestEventBadInjection(t sweet.T) {
+func TestSQSEventBadInjection(t *testing.T) {
 	handler := &badInjectionSQSEventHandler{}
 	outer := &sqsEventHandler{
 		handler:  handler,
@@ -51,10 +49,11 @@ func (s *SQSSuite) TestEventBadInjection(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err.Error()).To(ContainSubstring("ServiceA"))
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "ServiceA")
 }
 
-func (s *SQSSuite) TestEventInitError(t sweet.T) {
+func TestSQSEventInitError(t *testing.T) {
 	handler := NewMockSqsEventHandlerInitializer()
 	handler.InitFunc.SetDefaultReturn(fmt.Errorf("oops"))
 	outer := &sqsEventHandler{
@@ -65,10 +64,10 @@ func (s *SQSSuite) TestEventInitError(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err).To(MatchError("oops"))
+	require.EqualError(t, err, "oops")
 }
 
-func (s *SQSSuite) TestMessageInit(t sweet.T) {
+func TestSQSMessageInit(t *testing.T) {
 	handler := NewMockSqsMessageHandlerInitializer()
 	outer := &sqsMessageHandler{
 		handler:  handler,
@@ -78,11 +77,11 @@ func (s *SQSSuite) TestMessageInit(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err).To(BeNil())
-	Expect(handler.InitFunc).To(BeCalledOnceWith(config))
+	require.Nil(t, err)
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
 }
 
-func (s *SQSSuite) TestMessageBadInjection(t sweet.T) {
+func TestSQSMessageBadInjection(t *testing.T) {
 	handler := &badInjectionSQSMessageHandler{}
 	outer := &sqsMessageHandler{
 		handler:  handler,
@@ -92,10 +91,11 @@ func (s *SQSSuite) TestMessageBadInjection(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err.Error()).To(ContainSubstring("ServiceA"))
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "ServiceA")
 }
 
-func (s *SQSSuite) TestMessageInitError(t sweet.T) {
+func TestSQSMessageInitError(t *testing.T) {
 	handler := NewMockSqsMessageHandlerInitializer()
 	handler.InitFunc.SetDefaultReturn(fmt.Errorf("oops"))
 	outer := &sqsMessageHandler{
@@ -106,10 +106,10 @@ func (s *SQSSuite) TestMessageInitError(t sweet.T) {
 
 	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
 	err := outer.Init(config)
-	Expect(err).To(MatchError("oops"))
+	require.EqualError(t, err, "oops")
 }
 
-func (s *SQSSuite) TestEventInvoke(t sweet.T) {
+func TestSQSEventInvoke(t *testing.T) {
 	handler := NewMockSqsEventHandlerInitializer()
 	outer := &sqsEventHandler{
 		handler: handler,
@@ -117,12 +117,12 @@ func (s *SQSSuite) TestEventInvoke(t sweet.T) {
 	}
 
 	response, err := outer.Invoke(context.Background(), []byte(testSQSPayload))
-	Expect(err).To(BeNil())
-	Expect(response).To(BeNil())
-	Expect(handler.HandleFunc).To(BeCalledOnceWith(BeAnything(), testSQSMessages, BeAnything()))
+	require.Nil(t, err)
+	require.Nil(t, response)
+	mockassert.CalledOnceWith(t, handler.HandleFunc, mockassert.Values(mockassert.Skip, testSQSMessages))
 }
 
-func (s *SQSSuite) TestEventInvokeError(t sweet.T) {
+func TestSQSEventInvokeError(t *testing.T) {
 	handler := NewMockSqsEventHandlerInitializer()
 	outer := &sqsEventHandler{
 		handler: handler,
@@ -131,30 +131,30 @@ func (s *SQSSuite) TestEventInvokeError(t sweet.T) {
 
 	handler.HandleFunc.SetDefaultReturn(fmt.Errorf("oops"))
 	_, err := outer.Invoke(context.Background(), []byte(testSQSPayload))
-	Expect(err).To(MatchError("failed to process SQS event (oops)"))
+	require.EqualError(t, err, "failed to process SQS event (oops)")
 }
 
-func (s *SQSSuite) TestMessageHandle(t sweet.T) {
+func TestSQSMessageHandle(t *testing.T) {
 	handler := NewMockSqsMessageHandlerInitializer()
 	outer := &sqsMessageHandler{handler: handler}
 
 	err := outer.Handle(context.Background(), testSQSMessages, nacelle.NewNilLogger())
-	Expect(err).To(BeNil())
+	require.Nil(t, err)
 
 	for _, message := range testSQSMessages {
-		Expect(handler.HandleFunc).To(BeCalledOnceWith(BeAnything(), message, BeAnything()))
+		mockassert.CalledOnceWith(t, handler.HandleFunc, mockassert.Values(mockassert.Skip, message))
 	}
 }
 
-func (s *SQSSuite) TestMessageHandleError(t sweet.T) {
+func TestSQSMessageHandleError(t *testing.T) {
 	handler := NewMockSqsMessageHandlerInitializer()
 	handler.HandleFunc.PushReturn(nil)
 	handler.HandleFunc.PushReturn(fmt.Errorf("oops"))
 	outer := &sqsMessageHandler{handler: handler}
 
 	err := outer.Handle(context.Background(), testSQSMessages, nacelle.NewNilLogger())
-	Expect(err).To(MatchError("failed to process SQS message m2 (oops)"))
-	Expect(handler.HandleFunc).To(BeCalledN(2))
+	require.EqualError(t, err, "failed to process SQS message m2 (oops)")
+	mockassert.CalledN(t, handler.HandleFunc, 2)
 }
 
 //
