@@ -1,4 +1,8 @@
-# Nacelle Base AWS Lambda Process [![GoDoc](https://godoc.org/github.com/go-nacelle/lambdabase?status.svg)](https://godoc.org/github.com/go-nacelle/lambdabase) [![CircleCI](https://circleci.com/gh/go-nacelle/lambdabase.svg?style=svg)](https://circleci.com/gh/go-nacelle/lambdabase) [![Coverage Status](https://coveralls.io/repos/github/go-nacelle/lambdabase/badge.svg?branch=master)](https://coveralls.io/github/go-nacelle/lambdabase?branch=master)
+# Nacelle Base AWS Lambda Process
+
+[![PkgGoDev](https://pkg.go.dev/badge/badge/github.com/go-nacelle/lambdabase.svg)](https://pkg.go.dev/github.com/go-nacelle/lambdabase)
+[![Build status](https://github.com/go-nacelle/lambdabase/actions/workflows/test.yml/badge.svg)](https://github.com/go-nacelle/lambdabase/actions/workflows/test.yml)
+[![Latest release](https://img.shields.io/github/release/go-nacelle/lambdabase.svg)](https://github.com/go-nacelle/lambdabase/releases/)
 
 Abstract AWS Lambda server process for nacelle.
 
