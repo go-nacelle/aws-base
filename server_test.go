@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambda/messages"
-	"github.com/go-nacelle/nacelle"
+	"github.com/go-nacelle/nacelle/v2"
 	"github.com/stretchr/testify/require"
 )
 

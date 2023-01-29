@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/go-nacelle/nacelle"
+	"github.com/go-nacelle/nacelle/v2"
 )
 
 type (
@@ -19,20 +19,20 @@ type (
 	}
 
 	kinesisRecordHandler struct {
-		Logger   nacelle.Logger           `service:"logger"`
-		Services nacelle.ServiceContainer `service:"services"`
+		Logger   nacelle.Logger            `service:"logger"`
+		Services *nacelle.ServiceContainer `service:"services"`
 		handler  KinesisRecordHandler
 	}
 )
 
-func NewKinesisRecordServer(handler KinesisRecordHandler) nacelle.Process {
+func NewKinesisRecordServer(handler KinesisRecordHandler) *Server {
 	return NewKinesisEventServer(&kinesisRecordHandler{
 		handler: handler,
 	})
 }
 
-func (s *kinesisRecordHandler) Init(config nacelle.Config) error {
-	return doInit(config, s.Services, s.handler)
+func (s *kinesisRecordHandler) Init(ctx context.Context) error {
+	return doInit(ctx, s.Services, s.handler)
 }
 
 func (h *kinesisRecordHandler) Handle(ctx context.Context, records []events.KinesisEventRecord, logger nacelle.Logger) error {

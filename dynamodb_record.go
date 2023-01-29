@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/go-nacelle/nacelle"
+	"github.com/go-nacelle/nacelle/v2"
 )
 
 type (
@@ -19,19 +19,19 @@ type (
 	}
 
 	dynamoDBRecordHandler struct {
-		Services nacelle.ServiceContainer `service:"services"`
+		Services *nacelle.ServiceContainer `service:"services"`
 		handler  DynamoDBRecordHandler
 	}
 )
 
-func NewDynamoDBRecordServer(handler DynamoDBRecordHandler) nacelle.Process {
+func NewDynamoDBRecordServer(handler DynamoDBRecordHandler) *Server {
 	return NewDynamoDBEventServer(&dynamoDBRecordHandler{
 		handler: handler,
 	})
 }
 
-func (s *dynamoDBRecordHandler) Init(config nacelle.Config) error {
-	return doInit(config, s.Services, s.handler)
+func (s *dynamoDBRecordHandler) Init(ctx context.Context) error {
+	return doInit(ctx, s.Services, s.handler)
 }
 
 func (h *dynamoDBRecordHandler) Handle(ctx context.Context, records []events.DynamoDBEventRecord, logger nacelle.Logger) error {

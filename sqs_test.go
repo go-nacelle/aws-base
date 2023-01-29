@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	mockassert "github.com/derision-test/go-mockgen/testutil/assert"
-	"github.com/go-nacelle/nacelle"
+	"github.com/go-nacelle/nacelle/v2"
 	"github.com/stretchr/testify/require"
 )
 
