@@ -10,7 +10,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambda/messages"
-	"github.com/go-nacelle/nacelle"
+	"github.com/go-nacelle/config/v3"
+	"github.com/go-nacelle/nacelle/v2"
+	"github.com/go-nacelle/service/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,12 +39,15 @@ var testHandler = LambdaHandlerFunc(func(ctx context.Context, payload []byte) ([
 })
 
 func TestServerServeAndStop(t *testing.T) {
+	ctx := context.Background()
+	ctx = config.WithConfig(ctx, testConfig)
+
 	server := makeLambdaServer(testHandler)
-	err := server.Init(testConfig)
+	err := server.Init(ctx)
 	require.Nil(t, err)
 
-	go server.Start()
-	defer server.Stop()
+	go server.Start(ctx)
+	defer server.Stop(ctx)
 
 	// Hack internals to get the dynamic port (don't bind to one on host)
 	conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", getDynamicPort(server.listener)))
@@ -72,23 +77,29 @@ func TestServerServeAndStop(t *testing.T) {
 }
 
 func TestServerBadInjection(t *testing.T) {
+	ctx := context.Background()
+	ctx = config.WithConfig(ctx, testConfig)
+
 	server := NewServer(&badInjectionLambdaHandler{})
 	server.Logger = nacelle.NewNilLogger()
 	server.Services = makeBadContainer()
 	server.Health = nacelle.NewHealth()
 
-	err := server.Init(testConfig)
+	err := server.Init(ctx)
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "ServiceA")
 }
 
 func TestServerInitError(t *testing.T) {
+	ctx := context.Background()
+	ctx = config.WithConfig(ctx, testConfig)
+
 	server := NewServer(&badInitLambdaHandler{})
 	server.Logger = nacelle.NewNilLogger()
 	server.Services = makeBadContainer()
 	server.Health = nacelle.NewHealth()
 
-	err := server.Init(testConfig)
+	err := server.Init(ctx)
 	require.EqualError(t, err, "oops")
 }
 
@@ -99,7 +110,7 @@ type wrappedHandler struct {
 	lambda.Handler
 }
 
-func (h *wrappedHandler) Init(config nacelle.Config) error {
+func (h *wrappedHandler) Init(ctx context.Context) error {
 	return nil
 }
 
@@ -125,7 +136,7 @@ type badInjectionLambdaHandler struct {
 	ServiceA *A `service:"A"`
 }
 
-func (i *badInjectionLambdaHandler) Init(nacelle.Config) error {
+func (i *badInjectionLambdaHandler) Init(context.Context) error {
 	return nil
 }
 
@@ -133,7 +144,7 @@ func (i *badInjectionLambdaHandler) Invoke(context.Context, []byte) ([]byte, err
 	return nil, nil
 }
 
-func makeBadContainer() nacelle.ServiceContainer {
+func makeBadContainer() *service.Container {
 	container := nacelle.NewServiceContainer()
 	container.Set("A", &B{})
 	return container
@@ -144,7 +155,7 @@ func makeBadContainer() nacelle.ServiceContainer {
 
 type badInitLambdaHandler struct{}
 
-func (i *badInitLambdaHandler) Init(nacelle.Config) error {
+func (i *badInitLambdaHandler) Init(context.Context) error {
 	return fmt.Errorf("oops")
 }
 

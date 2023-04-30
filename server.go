@@ -8,20 +8,25 @@ import (
 	"sync"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/go-nacelle/nacelle"
+	"github.com/go-nacelle/config/v3"
+	"github.com/go-nacelle/nacelle/v2"
+	"github.com/go-nacelle/process/v2"
+	"github.com/go-nacelle/service/v2"
 	"github.com/google/uuid"
 )
 
 type (
 	Server struct {
-		Logger      nacelle.Logger           `service:"logger"`
-		Services    nacelle.ServiceContainer `service:"services"`
-		Health      nacelle.Health           `service:"health"`
-		handler     Handler
-		listener    net.Listener
-		server      *rpc.Server
-		once        *sync.Once
-		healthToken healthToken
+		Config       *nacelle.Config           `service:"config"`
+		Logger       nacelle.Logger            `service:"logger"`
+		Services     *nacelle.ServiceContainer `service:"services"`
+		Health       *nacelle.Health           `service:"health"`
+		handler      Handler
+		listener     net.Listener
+		server       *rpc.Server
+		once         *sync.Once
+		healthToken  healthToken
+		healthStatus *process.HealthComponentStatus
 	}
 
 	Handler interface {
@@ -44,21 +49,23 @@ func NewServer(handler Handler) *Server {
 	}
 }
 
-func (s *Server) Init(config nacelle.Config) error {
-	if err := s.Health.AddReason(s.healthToken); err != nil {
+func (s *Server) Init(ctx context.Context) error {
+	healthStatus, err := s.Health.Register(s.healthToken)
+	if err != nil {
 		return err
 	}
+	s.healthStatus = healthStatus
 
 	serverConfig := &Config{}
-	if err := config.Load(serverConfig); err != nil {
+	if err := config.LoadFromContext(ctx, serverConfig); err != nil {
 		return err
 	}
 
-	if err := s.Services.Inject(s.handler); err != nil {
+	if err := service.Inject(ctx, s.Services, s.handler); err != nil {
 		return err
 	}
 
-	if err := s.handler.Init(config); err != nil {
+	if err := s.handler.Init(ctx); err != nil {
 		return err
 	}
 
@@ -78,13 +85,11 @@ func (s *Server) Init(config nacelle.Config) error {
 	return nil
 }
 
-func (s *Server) Start() error {
+func (s *Server) Start(ctx context.Context) error {
 	defer s.close()
 	wg := sync.WaitGroup{}
 
-	if err := s.Health.RemoveReason(s.healthToken); err != nil {
-		return err
-	}
+	s.healthStatus.Update(true)
 
 	for {
 		conn, err := s.listener.Accept()
@@ -111,7 +116,7 @@ func (s *Server) Start() error {
 	return nil
 }
 
-func (s *Server) Stop() error {
+func (s *Server) Stop(ctx context.Context) error {
 	s.close()
 	return nil
 }

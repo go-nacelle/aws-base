@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/go-nacelle/nacelle"
+	"github.com/go-nacelle/nacelle/v2"
 )
 
 type (
@@ -19,20 +19,20 @@ type (
 	}
 
 	sqsMessageHandler struct {
-		Logger   nacelle.Logger           `service:"logger"`
-		Services nacelle.ServiceContainer `service:"services"`
+		Logger   nacelle.Logger            `service:"logger"`
+		Services *nacelle.ServiceContainer `service:"services"`
 		handler  SQSMessageHandler
 	}
 )
 
-func NewSQSRecordServer(handler SQSMessageHandler) nacelle.Process {
+func NewSQSRecordServer(handler SQSMessageHandler) *Server {
 	return NewSQSEventServer(&sqsMessageHandler{
 		handler: handler,
 	})
 }
 
-func (s *sqsMessageHandler) Init(config nacelle.Config) error {
-	return doInit(config, s.Services, s.handler)
+func (s *sqsMessageHandler) Init(ctx context.Context) error {
+	return doInit(ctx, s.Services, s.handler)
 }
 
 func (h *sqsMessageHandler) Handle(ctx context.Context, batch []events.SQSMessage, logger nacelle.Logger) error {
