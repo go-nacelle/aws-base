@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	mockassert "github.com/derision-test/go-mockgen/testutil/assert"
+	"github.com/go-nacelle/config/v3"
 	"github.com/go-nacelle/nacelle/v2"
 	"github.com/stretchr/testify/require"
 )
@@ -69,10 +70,14 @@ func TestKinesisEventInit(t *testing.T) {
 		Services: nacelle.NewServiceContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(ctx))
 }
 
 func TestKinesisEventBadInjection(t *testing.T) {
@@ -83,8 +88,12 @@ func TestKinesisEventBadInjection(t *testing.T) {
 		Services: makeBadContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "ServiceA")
 }
@@ -98,8 +107,12 @@ func TestKinesisEventInitError(t *testing.T) {
 		Services: makeBadContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.EqualError(t, err, "oops")
 }
 
@@ -111,10 +124,14 @@ func TestKinesisRecordInit(t *testing.T) {
 		Services: nacelle.NewServiceContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(ctx))
 }
 
 func TestKinesisRecordBadInjection(t *testing.T) {
@@ -125,8 +142,12 @@ func TestKinesisRecordBadInjection(t *testing.T) {
 		Services: makeBadContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "ServiceA")
 }
@@ -140,8 +161,12 @@ func TestKinesisRecordInitError(t *testing.T) {
 		Services: makeBadContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.EqualError(t, err, "oops")
 }
 

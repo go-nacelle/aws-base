@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	mockassert "github.com/derision-test/go-mockgen/testutil/assert"
+	"github.com/go-nacelle/config/v3"
 	"github.com/go-nacelle/nacelle/v2"
 	"github.com/stretchr/testify/require"
 )
@@ -87,10 +88,14 @@ func TestDynamoDBEventInit(t *testing.T) {
 		Services: nacelle.NewServiceContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(ctx))
 }
 
 func TestDynamoDBEventBadInjection(t *testing.T) {
@@ -101,8 +106,12 @@ func TestDynamoDBEventBadInjection(t *testing.T) {
 		Services: makeBadContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "ServiceA")
 }
@@ -116,8 +125,12 @@ func TestDynamoDBEventInitError(t *testing.T) {
 		Services: nacelle.NewServiceContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.EqualError(t, err, "oops")
 }
 
@@ -128,10 +141,14 @@ func TestDynamoDBRecordInit(t *testing.T) {
 		Services: nacelle.NewServiceContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.Nil(t, err)
-	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(config))
+	mockassert.CalledOnceWith(t, handler.InitFunc, mockassert.Values(ctx))
 }
 
 func TestDynamoDBRecordBadInjection(t *testing.T) {
@@ -141,8 +158,12 @@ func TestDynamoDBRecordBadInjection(t *testing.T) {
 		Services: makeBadContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "ServiceA")
 }
@@ -155,8 +176,12 @@ func TestDynamoDBRecordInitError(t *testing.T) {
 		Services: nacelle.NewServiceContainer(),
 	}
 
-	config := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
-	err := outer.Init(config)
+	ctx := context.Background()
+
+	cfg := nacelle.NewConfig(nacelle.NewTestEnvSourcer(nil))
+	ctx = config.WithConfig(ctx, cfg)
+
+	err := outer.Init(ctx)
 	require.EqualError(t, err, "oops")
 }
 

@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/go-nacelle/config/v3"
 	"github.com/go-nacelle/nacelle/v2"
 	"github.com/go-nacelle/process/v2"
 	"github.com/go-nacelle/service/v2"
@@ -56,7 +57,7 @@ func (s *Server) Init(ctx context.Context) error {
 	s.healthStatus = healthStatus
 
 	serverConfig := &Config{}
-	if err := s.Config.Load(serverConfig); err != nil {
+	if err := config.LoadFromContext(ctx, serverConfig); err != nil {
 		return err
 	}
 
