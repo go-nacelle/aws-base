@@ -7,7 +7,7 @@ require (
 	github.com/derision-test/go-mockgen v1.3.7
 	github.com/go-nacelle/config/v3 v3.0.0
 	github.com/go-nacelle/log/v2 v2.0.1
-	github.com/go-nacelle/nacelle/v2 v2.0.1
+	github.com/go-nacelle/nacelle/v2 v2.1.0
 	github.com/go-nacelle/process/v2 v2.0.1
 	github.com/go-nacelle/service/v2 v2.0.1
 	github.com/google/uuid v1.1.1
@@ -20,13 +20,12 @@ require (
 	github.com/derision-test/glock v1.0.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
-	github.com/go-nacelle/config/v2 v2.0.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-zglob v0.0.4 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
