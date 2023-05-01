@@ -85,7 +85,7 @@ func (s *Server) Init(ctx context.Context) error {
 	return nil
 }
 
-func (s *Server) Start(ctx context.Context) error {
+func (s *Server) Run(ctx context.Context) error {
 	defer s.close()
 	wg := sync.WaitGroup{}
 

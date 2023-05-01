@@ -46,7 +46,7 @@ func TestServerServeAndStop(t *testing.T) {
 	err := server.Init(ctx)
 	require.Nil(t, err)
 
-	go server.Start(ctx)
+	go server.Run(ctx)
 	defer server.Stop(ctx)
 
 	// Hack internals to get the dynamic port (don't bind to one on host)
